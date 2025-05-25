@@ -11,15 +11,18 @@ body {
 }
 
 footer {
-  background-color: #f8f9fa; /* Cor de fundo clara */
+  background-color: #f8f9fa;
+  /* Cor de fundo clara */
   text-align: center;
-  padding: 1rem; /* Ajuste o padding conforme necessário */
-  margin-top: auto; /* Empurra o footer para o fundo */
+  padding: 1rem;
+  /* Ajuste o padding conforme necessário */
+  margin-top: auto;
+  /* Empurra o footer para o fundo */
 }
 
 #ico-atl {
   position: absolute;
-  margin: -45px 150px;
+  margin: -45px 255px;
 }
 
 #confirm {
