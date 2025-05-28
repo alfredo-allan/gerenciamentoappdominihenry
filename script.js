@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const agendamentosLink = document.querySelector('a[href="#agenda"]');
   const caixaLink = document.querySelector('a[href="#caixa"]');
-  const usuariosLink = document.querySelector('a[href="#usuarios"]'); // Corrigido para corresponder ao ID do elemento
+  const usuariosLink = document.querySelector('a[href="#usuarios"]');
 
   function hideAllSections() {
     agendaSection.style.display = "none";
@@ -13,71 +13,62 @@ document.addEventListener("DOMContentLoaded", function () {
     usuariosSection.style.display = "none";
   }
 
-  // Mostrar a seção de agendamentos e ocultar as outras
   agendamentosLink.addEventListener("click", function (event) {
     event.preventDefault();
     hideAllSections();
     agendaSection.style.display = "block";
   });
 
-  // Mostrar a seção de caixa e ocultar as outras
   caixaLink.addEventListener("click", function (event) {
     event.preventDefault();
     hideAllSections();
     caixaSection.style.display = "block";
   });
 
-  // Mostrar a seção de usuários e ocultar as outras
   usuariosLink.addEventListener("click", function (event) {
     event.preventDefault();
     hideAllSections();
     usuariosSection.style.display = "block";
-    fetchUsers(); // Chama a função para buscar e exibir os usuários
+    fetchUsers();
   });
 
-  // Exibir nome do usuário (se disponível)
-  // Certifique-se de que userNameDisplay está definido no seu HTML ou como uma variável global
-  const userNameDisplay = document.getElementById("userNameDisplay"); // Assumindo que você tem um elemento com este ID
+  const userNameDisplay = document.getElementById("userNameDisplay");
   const userName = localStorage.getItem("userName");
-  if (userNameDisplay) { // Verifica se o elemento existe antes de tentar manipulá-lo
+  if (userNameDisplay) {
     userNameDisplay.innerText = userName ? `Bem-vindo, ${userName}!` : "";
   }
 
-
-  let barberAppointments = []; // ou o que for apropriado
-
   const barberNameMap = {
     "Erik": "barber_1",
+    "Alesson": "barber_2"
   };
 
-  // Certifique-se de que fetchAppointmentsBtn e barberSelect estão definidos no seu HTML
-  const fetchAppointmentsBtn = document.getElementById("fetchAppointmentsBtn"); // Exemplo de ID
-  const barberSelect = document.getElementById("barberSelect"); // Exemplo de ID
+  const fetchAppointmentsBtn = document.getElementById("fetchAppointmentsBtn");
+  const barberSelect = document.getElementById("barberSelect");
+  const appointmentsList = document.getElementById("appointmentsList");
+
+  let allAppointments = [];
 
   if (fetchAppointmentsBtn) {
     fetchAppointmentsBtn.addEventListener("click", function () {
-      fetchAppointments("Erik");
+      const displayName = barberSelect.value;
+      fetchAppointments(displayName);
     });
   }
 
-
   function fetchAppointments(displayName) {
     const apiName = barberNameMap[displayName];
+    if (!apiName) return;
 
     fetch(`https://kinkbarbearia.pythonanywhere.com/appointments?barber=${encodeURIComponent(apiName)}`)
       .then((response) => response.json())
       .then((data) => {
         if (data.appointments) {
-          if (data.appointments) {
-            const barberAppointments = data.appointments.map((appointment) => ({
-              ...appointment,
-              barber: displayName, // Nome amigável
-            }));
-            allAppointments = barberAppointments; // Substitui em vez de acumular
-            filterAppointments();
-          }
-
-          allAppointments = allAppointments.concat(barberAppointments);
+          const formattedAppointments = data.appointments.map((appointment) => ({
+            ...appointment,
+            barber: displayName
+          }));
+          allAppointments = formattedAppointments; // sobrescreve corretamente
           filterAppointments();
         }
       })
@@ -86,45 +77,40 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
 
-  // Certifique-se de que appointmentsList está definido no seu HTML
-  const appointmentsList = document.getElementById("appointmentsList"); // Exemplo de ID
-
   function filterAppointments() {
     const selectedBarber = barberSelect.value;
     const filteredAppointments = allAppointments.filter(
       (appointment) => appointment.barber === selectedBarber
     );
 
-    if (appointmentsList) { // Verifica se o elemento existe
+    if (appointmentsList) {
       appointmentsList.innerHTML = "";
 
       if (filteredAppointments.length > 0) {
         filteredAppointments.forEach((appointment) => {
           const appointmentElement = document.createElement("div");
           appointmentElement.innerHTML = `
-  <h3>${appointment.service}</h3>
-  <p><strong>Barbeiro:</strong> ${appointment.barber}</p>
-  <p><strong>Data:</strong> ${formatDate(appointment.date)}</p>
-  <p><strong>Horário:</strong> ${appointment.time}</p>
-  <p><strong>Duração:</strong> ${appointment.duration} minutos</p>
-  <p><strong>Valor: R$</strong> ${appointment.value},00</p>
-  <p><strong>Email:</strong> ${appointment.client_email}</p>
-  <p><strong>Telefone:</strong> 
-  <a href="${generateWhatsAppLink(appointment.client_phone, appointment.date, appointment.time)}" 
-     target="_blank" 
-     style="text-decoration: none; color: #0d6efd; display: inline-flex; align-items: center; gap: 6px;">
-    <img src="./img/whatsapp.png" alt="WhatsApp" width="20" height="20" position="relative" top="8px" />
-    ${appointment.client_phone}
-  </a>
-</p>
-
-  <div id="ico-atl">
-    <img id="confirm" src="./img/verifica.png" alt="Confirmar" onclick="confirmAppointment(${appointment.id}, this)">
-    <img id="exclude" src="./img/excluir.png" alt="Excluir" onclick="deleteAppointment(${appointment.id}, this)">
-  </div>
-  <hr/>
-`;
-
+            <h3>${appointment.service}</h3>
+            <p><strong>Barbeiro:</strong> ${appointment.barber}</p>
+            <p><strong>Data:</strong> ${formatDate(appointment.date)}</p>
+            <p><strong>Horário:</strong> ${appointment.time}</p>
+            <p><strong>Duração:</strong> ${appointment.duration} minutos</p>
+            <p><strong>Valor: R$</strong> ${appointment.value},00</p>
+            <p><strong>Email:</strong> ${appointment.client_email}</p>
+            <p><strong>Telefone:</strong> 
+              <a href="${generateWhatsAppLink(appointment.client_phone, appointment.date, appointment.time)}"
+                 target="_blank"
+                 style="text-decoration: none; color: #0d6efd; display: inline-flex; align-items: center; gap: 6px;">
+                <img src="./img/whatsapp.png" alt="WhatsApp" width="20" height="20" />
+                ${appointment.client_phone}
+              </a>
+            </p>
+            <div id="ico-atl">
+              <img id="confirm" src="./img/verifica.png" alt="Confirmar" onclick="confirmAppointment(${appointment.id}, this)">
+              <img id="exclude" src="./img/excluir.png" alt="Excluir" onclick="deleteAppointment(${appointment.id}, this)">
+            </div>
+            <hr/>
+          `;
           appointmentsList.appendChild(appointmentElement);
         });
       } else {
@@ -138,12 +124,11 @@ document.addEventListener("DOMContentLoaded", function () {
     return `${day}/${month}/${year}`;
   }
 
-  //gerar url para mensagem via whatsapp 
   function generateWhatsAppLink(phone, date, time) {
-    const cleanPhone = phone.replace(/\D/g, ""); // Remove qualquer símbolo
+    const cleanPhone = phone.replace(/\D/g, ""); // Remove tudo que não for número
+    const brazilPhone = `55${cleanPhone}`; // Prefixa com código do país
 
-    const formattedDate = formatDate(date); // dd/mm/yyyy
-
+    const formattedDate = formatDate(date);
     const message =
       "Olá, bom dia! Tudo certo? 😊\n" +
       "Passando só pra confirmar o seu horário na Domini Henry Barbearia.\n\n" +
@@ -154,17 +139,13 @@ document.addEventListener("DOMContentLoaded", function () {
       "Estamos te esperando! 💈✂️\n" +
       "Abraço, equipe Domini Henry Barbearia.";
 
-    const encodedMessage = encodeURIComponent(message);
-    return `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+    return `https://wa.me/${brazilPhone}?text=${encodeURIComponent(message)}`;
   }
 
 
-
-
-  if (barberSelect) { // Verifica se o elemento existe
+  if (barberSelect) {
     barberSelect.addEventListener("change", filterAppointments);
   }
-
 
   window.confirmAppointment = function (appointmentId, element) {
     const selectedBarberName = barberSelect.value;
@@ -174,9 +155,8 @@ document.addEventListener("DOMContentLoaded", function () {
       (app) => app.id === appointmentId && app.barber === selectedBarberName
     );
 
-
     if (!appointment) {
-      console.error("Agendamento não encontrado ou barbeiro incorreto.");
+      console.error("Agendamento não encontrado.");
       return;
     }
 
@@ -191,25 +171,21 @@ document.addEventListener("DOMContentLoaded", function () {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        barber_name: barberCode, // <--- envia o código correto
+        barber_name: barberCode,
         service: appointment.service,
         value: appointment.value,
         date: appointment.date,
       }),
     })
       .then((response) => response.json())
-      .then((data) => {
-        console.log("Transação registrada:", data);
-
-        // Corrigido: usa o código do barbeiro, e não o nome visível
+      .then(() => {
         return fetch(
           `https://kinkbarbearia.pythonanywhere.com/appointments/${appointmentId}?barber=${encodeURIComponent(barberCode)}`,
           { method: "DELETE" }
         );
       })
       .then((response) => response.json())
-      .then((data) => {
-        console.log("Agendamento deletado:", data);
+      .then(() => {
         allAppointments = allAppointments.filter((app) => app.id !== appointmentId);
         filterAppointments();
       })
@@ -219,8 +195,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     element.style.pointerEvents = "none";
   };
-
-
 
   // Formatação de data para exibição no resultado
   function formatDateForUser(dateString) {
@@ -233,7 +207,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const barberMap = {
     barber_1: "Erik",
-    barber_2: "Mateus", // adicionar quando necessário
+    barber_2: "Alesson", // adicionar quando necessário
   };
 
   if (caixaForm) {
