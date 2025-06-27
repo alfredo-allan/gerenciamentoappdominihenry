@@ -125,10 +125,11 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function generateWhatsAppLink(phone, date, time) {
-    const cleanPhone = phone.replace(/\D/g, ""); // Remove tudo que não for número
-    const brazilPhone = `55${cleanPhone}`; // Prefixa com código do país
+    const cleanPhone = phone.replace(/\D/g, ""); // Remove não numéricos
+    const brazilPhone = `55${cleanPhone}`;
 
     const formattedDate = formatDate(date);
+
     const message =
       "Olá, bom dia! Tudo certo? 😊\n" +
       "Passando só pra confirmar o seu horário na Domini Henry Barbearia.\n\n" +
@@ -139,8 +140,19 @@ document.addEventListener("DOMContentLoaded", function () {
       "Estamos te esperando! 💈✂️\n" +
       "Abraço, equipe Domini Henry Barbearia.";
 
-    return `https://wa.me/${brazilPhone}?text=${encodeURIComponent(message)}`;
+    const encodedMessage = encodeURIComponent(message);
+
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      // Link direto para app do WhatsApp mobile
+      return `whatsapp://send?phone=${brazilPhone}&text=${encodedMessage}`;
+    } else {
+      // Link padrão que abre o WhatsApp Web
+      return `https://wa.me/${brazilPhone}?text=${encodedMessage}`;
+    }
   }
+
 
 
   if (barberSelect) {
